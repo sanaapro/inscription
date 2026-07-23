@@ -1,0 +1,192 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>SanaaPro — Créer ma boutique</title>
+<style>
+  :root{
+    --ivory:#F0EFED; --ink:#141414; --line:#d8d6d1;
+    --ok:#1f7a4d; --err:#b23b3b; --muted:#6b6862;
+  }
+  *{box-sizing:border-box}
+  body{
+    margin:0; min-height:100vh; background:var(--ivory); color:var(--ink);
+    font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;
+    display:flex; align-items:center; justify-content:center; padding:24px;
+  }
+  .card{
+    width:100%; max-width:440px; background:#fff; border:1px solid var(--line);
+    border-radius:16px; padding:28px 24px; box-shadow:0 10px 40px rgba(0,0,0,.06);
+  }
+  .brand{ text-align:center; margin-bottom:6px; }
+  .brand .name{ font-size:24px; letter-spacing:6px; font-weight:600; }
+  .brand .sub{ font-size:11px; letter-spacing:3px; color:var(--muted); text-transform:uppercase; margin-top:4px; }
+  h1{ font-size:16px; font-weight:600; text-align:center; margin:18px 0 4px; }
+  .lead{ text-align:center; color:var(--muted); font-size:13px; margin:0 0 20px; }
+  label{ display:block; font-size:12px; color:var(--muted); margin:14px 0 6px; letter-spacing:.3px; }
+  input{
+    width:100%; padding:12px 14px; border:1px solid var(--line); border-radius:10px;
+    font-size:15px; background:#fafafa;
+  }
+  input:focus{ outline:none; border-color:var(--ink); background:#fff; }
+  .hint{ font-size:11px; color:var(--muted); margin-top:5px; }
+  button{
+    width:100%; margin-top:22px; padding:14px; border:none; border-radius:10px;
+    background:var(--ink); color:var(--ivory); font-size:15px; letter-spacing:.5px;
+    cursor:pointer;
+  }
+  button:disabled{ opacity:.5; cursor:default; }
+  .msg{ margin-top:16px; font-size:13px; padding:12px 14px; border-radius:10px; display:none; }
+  .msg.show{ display:block; }
+  .msg.err{ background:#fbeaea; color:var(--err); }
+  .msg.ok{ background:#eaf5ee; color:var(--ok); }
+  .done{ display:none; text-align:center; }
+  .done.show{ display:block; }
+  .done .url{
+    display:block; margin:16px 0; padding:12px; background:var(--ivory);
+    border-radius:10px; font-size:14px; word-break:break-all; font-weight:600;
+  }
+  .foot{ text-align:center; font-size:11px; color:var(--muted); margin-top:22px; }
+</style>
+</head>
+<body>
+  <div class="card">
+    <div class="brand">
+      <div class="name">SANAAPRO</div>
+      <div class="sub">votre atelier, en ligne</div>
+    </div>
+
+    <!-- FORMULAIRE -->
+    <div id="form-view">
+      <h1>Créez votre boutique</h1>
+      <p class="lead">Quelques secondes suffisent. Votre espace est prêt aussitôt.</p>
+
+      <label for="boutique">Nom de la boutique</label>
+      <input id="boutique" type="text" placeholder="Ex. Atelier Fatou" autocomplete="off">
+      <div class="hint" id="url-preview"></div>
+
+      <label for="owner">Votre nom</label>
+      <input id="owner" type="text" placeholder="Votre nom complet" autocomplete="name">
+
+      <label for="email">Email (sert à vous connecter)</label>
+      <input id="email" type="email" placeholder="vous@email.com" autocomplete="email">
+
+      <label for="pass">Mot de passe</label>
+      <input id="pass" type="password" placeholder="6 caractères minimum" autocomplete="new-password">
+
+      <label for="wa">WhatsApp <span style="text-transform:none">(optionnel)</span></label>
+      <input id="wa" type="tel" placeholder="+220 ..." autocomplete="tel">
+
+      <button id="submit">Créer ma boutique</button>
+      <div class="msg" id="msg"></div>
+    </div>
+
+    <!-- SUCCÈS -->
+    <div class="done" id="done-view">
+      <h1 style="color:var(--ok)">✓ Boutique créée</h1>
+      <p class="lead">Votre espace est prêt. Notez vos informations :</p>
+      <span class="url" id="store-url"></span>
+      <p class="lead" id="trial-note"></p>
+      <button id="go">Ouvrir ma boutique</button>
+    </div>
+
+    <div class="foot">SanaaPro — propulsé par votre atelier</div>
+  </div>
+
+<script type="module">
+  import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
+  import { getAuth, createUserWithEmailAndPassword }
+    from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
+  import { getFirestore, doc, getDoc, writeBatch, serverTimestamp, Timestamp }
+    from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+
+  const firebaseConfig = {
+    apiKey: "AIzaSyCqfAGGU7yFs_QYg70u3e5cNYPXQjRHzsI",
+    authDomain: "sanaapro-app.firebaseapp.com",
+    projectId: "sanaapro-app",
+    storageBucket: "sanaapro-app.firebasestorage.app",
+    messagingSenderId: "451762519937",
+    appId: "1:451762519937:web:0507928bc9f6ef0c937280"
+  };
+
+  const TRIAL_DAYS = 14;                                  // durée de l'essai gratuit
+  const STORE_BASE = "https://sanaapro.github.io/";       // adresse de l'app boutique (à ajuster plus tard)
+
+  const app = initializeApp(firebaseConfig);
+  const auth = getAuth(app);
+  const db = getFirestore(app);
+
+  const $ = id => document.getElementById(id);
+  const boutiqueEl = $("boutique"), ownerEl = $("owner"), emailEl = $("email"),
+        passEl = $("pass"), waEl = $("wa"), btn = $("submit"), msg = $("msg");
+
+  // slug : minuscules, sans accents, tirets
+  const makeSlug = s => s.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g,"")
+    .replace(/[^a-z0-9]+/g,"-").replace(/^-+|-+$/g,"").slice(0,40);
+
+  boutiqueEl.addEventListener("input", () => {
+    const slug = makeSlug(boutiqueEl.value);
+    $("url-preview").textContent = slug ? `Adresse : ${STORE_BASE}${slug}/` : "";
+  });
+
+  function show(kind, text){ msg.className = `msg show ${kind}`; msg.textContent = text; }
+
+  btn.addEventListener("click", async () => {
+    const boutique = boutiqueEl.value.trim();
+    const owner = ownerEl.value.trim();
+    const email = emailEl.value.trim();
+    const pass = passEl.value;
+    const wa = waEl.value.trim();
+    const slug = makeSlug(boutique);
+
+    if(!boutique || !owner || !email || pass.length < 6 || !slug){
+      show("err","Vérifie : nom de boutique, ton nom, email, et mot de passe (6 caractères min)."); return;
+    }
+
+    btn.disabled = true; show("ok","Création en cours…");
+
+    try{
+      // 1) l'adresse est-elle libre ?
+      const slugSnap = await getDoc(doc(db,"slugs",slug));
+      if(slugSnap.exists()){
+        show("err","Ce nom de boutique est déjà pris. Essaie une variante."); btn.disabled = false; return;
+      }
+
+      // 2) créer le compte
+      const cred = await createUserWithEmailAndPassword(auth, email, pass);
+      const uid = cred.user.uid;
+
+      // 3) provisionner la boutique + abonnement d'essai, en une seule opération
+      const expiresAt = Timestamp.fromMillis(Date.now() + TRIAL_DAYS*24*60*60*1000);
+      const batch = writeBatch(db);
+      batch.set(doc(db,"slugs",slug),      { uid, boutiqueId: uid, createdAt: serverTimestamp() });
+      batch.set(doc(db,"boutiques",uid),   {
+        ownerUid: uid, name: boutique, slug, ownerName: owner, email, whatsapp: wa,
+        createdAt: serverTimestamp(),
+        subscription: { plan:"trial", status:"active", startAt: serverTimestamp(), expiresAt }
+      });
+      batch.set(doc(db,"users",uid),       { boutiqueId: uid, slug, role:"owner", createdAt: serverTimestamp() });
+      await batch.commit();
+
+      // 4) succès
+      $("form-view").style.display = "none";
+      const doneView = $("done-view"); doneView.classList.add("show");
+      const url = `${STORE_BASE}${slug}/`;
+      $("store-url").textContent = url;
+      $("trial-note").textContent =
+        `Essai gratuit de ${TRIAL_DAYS} jours. Connexion avec ${email}.`;
+      $("go").onclick = () => window.location.href = url;
+
+    }catch(e){
+      let m = "Une erreur est survenue. Réessaie.";
+      if(e.code === "auth/email-already-in-use") m = "Cet email a déjà un compte. Connecte-toi plutôt.";
+      else if(e.code === "auth/invalid-email") m = "Email invalide.";
+      else if(e.code === "auth/weak-password") m = "Mot de passe trop faible (6 caractères min).";
+      else if(e.code === "permission-denied") m = "Règles Firestore à publier / adresse déjà prise. Réessaie.";
+      show("err", m); btn.disabled = false;
+    }
+  });
+</script>
+</body>
+</html>
