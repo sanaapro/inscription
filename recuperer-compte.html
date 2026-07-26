@@ -1,0 +1,216 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="theme-color" content="#0E0E0F">
+<title>SanaaPro — Recover your account</title>
+<style>
+  :root{
+    --bg:#0E0E0F; --panel:#17181A; --panel2:#1E1F22; --line:#2C2E32; --line2:#3A3D42;
+    --gold:#E0B23C; --txt:#EDEBE6; --muted:#98948C;
+    --ok:#4FD18B; --okbg:#12301F; --err:#E96B6B; --errbg:#361A1A;
+    --serif:Georgia,"Times New Roman",serif;
+    --sans:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;
+  }
+  *{box-sizing:border-box}
+  body{ margin:0; min-height:100vh; background:var(--bg); color:var(--txt);
+    font-family:var(--sans); display:flex; align-items:flex-start; justify-content:center; padding:20px 16px 44px; }
+  .card{ width:100%; max-width:460px; }
+
+  .lang{ display:flex; justify-content:flex-end; }
+  .seg{ display:inline-flex; border:1px solid var(--line2); border-radius:20px; overflow:hidden; }
+  .seg button{ border:none; background:transparent; color:var(--muted); font-family:var(--sans);
+    font-size:12px; font-weight:700; letter-spacing:1px; padding:7px 17px; cursor:pointer; width:auto; margin:0; }
+  .seg button.on{ background:var(--gold); color:#141310; }
+
+  .brand{ text-align:center; margin:18px 0 4px; }
+  .brand .name{ font-family:var(--serif); font-size:28px; letter-spacing:5px; color:var(--gold);
+    text-transform:uppercase; font-weight:700; }
+  .brand .sub{ font-size:10px; letter-spacing:2.5px; color:var(--muted); text-transform:uppercase; margin-top:6px; }
+
+  .box{ background:var(--panel); border:1px solid var(--line); border-radius:14px; padding:24px 20px; margin-top:22px; }
+  h1{ font-family:var(--serif); font-size:19px; color:var(--gold); text-align:center; margin:0 0 6px; font-weight:700; }
+  .lead{ text-align:center; color:var(--muted); font-size:13px; margin:0 0 18px; line-height:1.6; }
+
+  label{ display:block; font-size:11px; letter-spacing:.5px; color:var(--muted); margin:15px 0 6px; text-transform:uppercase; }
+  input{ width:100%; padding:12px 14px; border:1px solid var(--line2); border-radius:9px;
+    font-size:15px; background:#101113; color:var(--txt); font-family:inherit; }
+  input::placeholder{ color:#6A665F; }
+  input:focus{ outline:none; border-color:var(--gold); }
+
+  button{ width:100%; margin-top:22px; padding:15px; border:none; border-radius:10px;
+    background:var(--gold); color:#141310; font-size:15px; font-weight:700; cursor:pointer; font-family:var(--sans); }
+  button:disabled{ opacity:.45; cursor:default; }
+
+  .msg{ margin-top:16px; font-size:13px; padding:12px 14px; border-radius:9px; display:none; line-height:1.5; }
+  .msg.show{ display:block; }
+  .msg.err{ background:var(--errbg); color:var(--err); }
+  .msg.ok{ background:var(--okbg); color:var(--ok); }
+
+  .sep{ border-top:1px solid var(--line); margin-top:18px; padding-top:14px; text-align:center; }
+  .sep p{ margin:0 0 10px; font-size:13px; color:var(--muted); }
+  .sep a{ display:block; padding:13px; border:1px solid var(--line2); border-radius:10px;
+    color:var(--txt); font-size:14px; text-decoration:none; margin-bottom:8px; }
+  .foot{ text-align:center; font-size:11px; color:#5F5B54; margin-top:22px; }
+</style>
+</head>
+<body>
+  <div class="card">
+
+    <div class="lang">
+      <div class="seg" id="seg"><button data-l="en">EN</button><button data-l="fr">FR</button></div>
+    </div>
+
+    <div class="brand">
+      <div class="name">SanaaPro</div>
+      <div class="sub" data-i="tag">your workshop, online</div>
+    </div>
+
+    <div class="box">
+      <h1 data-i="title">Recover your account</h1>
+      <p class="lead" data-i="lead">Forgot your email or password? Enter the WhatsApp number you used to sign up.</p>
+
+      <label for="wa" data-i="lWa">WhatsApp number</label>
+      <input id="wa" type="tel" data-i-ph="phWa" placeholder="e.g. 7628683" autocomplete="tel">
+
+      <button id="submit" data-i="btnFind">Find my account</button>
+      <div class="msg" id="msg"></div>
+
+      <div class="sep">
+        <p data-i="noAcc">Don't have an account yet?</p>
+        <a href="../inscription/" data-i="linkNew">Create a shop</a>
+        <a href="../tape-espace/" data-i="linkSignIn">Back to sign in</a>
+      </div>
+    </div>
+
+    <div class="foot" data-i="foot">SanaaPro — powered by your workshop</div>
+  </div>
+
+<script type="module">
+  import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
+  import { getAuth, sendPasswordResetEmail }
+    from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
+  import { getFirestore, doc, getDoc }
+    from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+
+  const firebaseConfig = {
+    apiKey: "AIzaSyCqfAGGU7yFs_QYg70u3e5cNYPXQjRHzsI",
+    authDomain: "sanaapro-app.firebaseapp.com",
+    projectId: "sanaapro-app",
+    storageBucket: "sanaapro-app.firebasestorage.app",
+    messagingSenderId: "451762519937",
+    appId: "1:451762519937:web:0507928bc9f6ef0c937280"
+  };
+
+  const T = {
+    en:{
+      tag:"your workshop, online", title:"Recover your account",
+      lead:"Forgot your email or password? Enter the WhatsApp number you used to sign up.",
+      lWa:"WhatsApp number", phWa:"e.g. 7628683",
+      btnFind:"Find my account",
+      noAcc:"Don't have an account yet?", linkNew:"Create a shop", linkSignIn:"Back to sign in",
+      foot:"SanaaPro — powered by your workshop",
+      checking:"Searching…",
+      errEmpty:"Please enter a WhatsApp number.",
+      errNotFound:"No account found with this number. Check the number, or create a new shop.",
+      okSent:"A reset link was sent to {e}. Check your inbox (and spam folder), then come back to sign in."
+    },
+    fr:{
+      tag:"votre atelier, en ligne", title:"Récupérer votre compte",
+      lead:"Email ou mot de passe oublié ? Entrez le numéro WhatsApp utilisé à l'inscription.",
+      lWa:"Numéro WhatsApp", phWa:"Ex. 7628683",
+      btnFind:"Retrouver mon compte",
+      noAcc:"Pas encore de compte ?", linkNew:"Créer une boutique", linkSignIn:"Retour à la connexion",
+      foot:"SanaaPro — propulsé par votre atelier",
+      checking:"Recherche…",
+      errEmpty:"Merci d'entrer un numéro WhatsApp.",
+      errNotFound:"Aucun compte trouvé avec ce numéro. Vérifiez le numéro, ou créez une nouvelle boutique.",
+      okSent:"Un lien de réinitialisation a été envoyé à {e}. Vérifiez votre boîte mail (et les spams), puis revenez vous connecter."
+    }
+  };
+
+  let L = "en";
+  try { L = localStorage.getItem("sanaapro_site_lang") || "en"; } catch(e){}
+  if(!T[L]) L = "en";
+  const t = k => (T[L] && T[L][k]) || T.en[k] || k;
+
+  const app = initializeApp(firebaseConfig);
+  const auth = getAuth(app);
+  const db = getFirestore(app);
+
+  const $ = id => document.getElementById(id);
+
+  function applyLang(){
+    document.documentElement.lang = L;
+    document.querySelectorAll("[data-i]").forEach(el=>{
+      const v = t(el.getAttribute("data-i"));
+      if(v) el.textContent = v;
+    });
+    document.querySelectorAll("[data-i-ph]").forEach(el=>{
+      const v = t(el.getAttribute("data-i-ph"));
+      if(v) el.placeholder = v;
+    });
+    document.querySelectorAll("#seg button").forEach(b=>{
+      b.classList.toggle("on", b.getAttribute("data-l") === L);
+    });
+  }
+  document.querySelectorAll("#seg button").forEach(b=>{
+    b.addEventListener("click", ()=>{
+      L = b.getAttribute("data-l");
+      try { localStorage.setItem("sanaapro_site_lang", L); } catch(e){}
+      applyLang();
+    });
+  });
+
+  function normPhone(s){
+    let d = (s||"").replace(/\D/g,"");
+    if(d.startsWith("00")) d = d.slice(2);
+    if(d.length>0 && d.length<=8) d = "220"+d;
+    return d;
+  }
+
+  function maskEmail(e){
+    const [user, domain] = e.split("@");
+    if(!domain) return e;
+    const shown = user.slice(0,1);
+    return shown + "***@" + domain;
+  }
+
+  function show(kind, text){
+    const m=$("msg");
+    m.className = "msg show " + kind;
+    m.textContent = text;
+  }
+
+  $("submit").addEventListener("click", async () => {
+    const wa = $("wa").value.trim();
+    const phone = normPhone(wa);
+
+    if(!phone){
+      show("err", t("errEmpty")); return;
+    }
+
+    $("submit").disabled = true;
+    show("ok", t("checking"));
+
+    try{
+      const snap = await getDoc(doc(db,"phone_lookup",phone));
+      if(!snap.exists()){
+        show("err", t("errNotFound"));
+        $("submit").disabled = false;
+        return;
+      }
+      const email = snap.data().email;
+      await sendPasswordResetEmail(auth, email);
+      show("ok", t("okSent").replace("{e}", maskEmail(email)));
+    }catch(e){
+      show("err", t("errNotFound"));
+    }
+    $("submit").disabled = false;
+  });
+
+  applyLang();
+</script>
+</body>
+</html>

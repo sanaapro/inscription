@@ -1,0 +1,265 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="theme-color" content="#0E0E0F">
+<title>SanaaPro — Reset your password</title>
+<style>
+  :root{
+    --bg:#0E0E0F; --panel:#17181A; --panel2:#1E1F22; --line:#2C2E32; --line2:#3A3D42;
+    --gold:#E0B23C; --txt:#EDEBE6; --muted:#98948C;
+    --ok:#4FD18B; --okbg:#12301F; --err:#E96B6B; --errbg:#361A1A;
+    --serif:Georgia,"Times New Roman",serif;
+    --sans:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;
+  }
+  *{box-sizing:border-box}
+  body{ margin:0; min-height:100vh; background:var(--bg); color:var(--txt);
+    font-family:var(--sans); display:flex; align-items:flex-start; justify-content:center; padding:20px 16px 44px; }
+  .card{ width:100%; max-width:460px; }
+
+  .lang{ display:flex; justify-content:flex-end; }
+  .seg{ display:inline-flex; border:1px solid var(--line2); border-radius:20px; overflow:hidden; }
+  .seg button{ border:none; background:transparent; color:var(--muted); font-family:var(--sans);
+    font-size:12px; font-weight:700; letter-spacing:1px; padding:7px 17px; cursor:pointer; width:auto; margin:0; }
+  .seg button.on{ background:var(--gold); color:#141310; }
+
+  .brand{ text-align:center; margin:18px 0 4px; }
+  .brand .name{ font-family:var(--serif); font-size:28px; letter-spacing:5px; color:var(--gold);
+    text-transform:uppercase; font-weight:700; }
+  .brand .sub{ font-size:10px; letter-spacing:2.5px; color:var(--muted); text-transform:uppercase; margin-top:6px; }
+
+  .box{ background:var(--panel); border:1px solid var(--line); border-radius:14px; padding:24px 20px; margin-top:22px; }
+  h1{ font-family:var(--serif); font-size:19px; color:var(--gold); text-align:center; margin:0 0 6px; font-weight:700; }
+  .lead{ text-align:center; color:var(--muted); font-size:13px; margin:0 0 18px; line-height:1.6; }
+
+  label{ display:block; font-size:11px; letter-spacing:.5px; color:var(--muted); margin:15px 0 6px; text-transform:uppercase; }
+  input{ width:100%; padding:12px 14px; border:1px solid var(--line2); border-radius:9px;
+    font-size:15px; background:#101113; color:var(--txt); font-family:inherit; }
+  input::placeholder{ color:#6A665F; }
+  input:focus{ outline:none; border-color:var(--gold); }
+  .pwrap{ position:relative; }
+  .pwrap input{ padding-right:52px; }
+  .eye{ position:absolute; right:4px; top:50%; transform:translateY(-50%); background:none; border:none;
+    font-size:19px; line-height:1; padding:10px 12px; cursor:pointer; opacity:.45; filter:grayscale(1);
+    width:auto; margin:0; }
+  .eye.on{ opacity:1; filter:none; }
+
+  button{ width:100%; margin-top:22px; padding:15px; border:none; border-radius:10px;
+    background:var(--gold); color:#141310; font-size:15px; font-weight:700; cursor:pointer; font-family:var(--sans); }
+  button:disabled{ opacity:.45; cursor:default; }
+
+  .msg{ margin-top:16px; font-size:13px; padding:12px 14px; border-radius:9px; display:none; line-height:1.5; }
+  .msg.show{ display:block; }
+  .msg.err{ background:var(--errbg); color:var(--err); }
+  .msg.ok{ background:var(--okbg); color:var(--ok); }
+
+  .sep{ border-top:1px solid var(--line); margin-top:18px; padding-top:14px; text-align:center; }
+  .sep a{ display:block; padding:13px; border:1px solid var(--line2); border-radius:10px;
+    color:var(--txt); font-size:14px; text-decoration:none; }
+  .foot{ text-align:center; font-size:11px; color:#5F5B54; margin-top:22px; }
+  .done{ display:none; text-align:center; }
+  .done.show{ display:block; }
+</style>
+</head>
+<body>
+  <div class="card">
+
+    <div class="lang">
+      <div class="seg" id="seg"><button data-l="en">EN</button><button data-l="fr">FR</button></div>
+    </div>
+
+    <div class="brand">
+      <div class="name">SanaaPro</div>
+      <div class="sub" data-i="tag">your workshop, online</div>
+    </div>
+
+    <div class="box" id="form-view">
+      <h1 data-i="title">Choose a new password</h1>
+      <p class="lead" id="lead-line" data-i="lead">Enter a new password for your account.</p>
+
+      <label for="p1" data-i="lPass">New password</label>
+      <div class="pwrap">
+        <input id="p1" type="password" data-i-ph="phPass" placeholder="6 characters minimum" autocomplete="new-password">
+        <button class="eye" id="eye1" type="button">👁</button>
+      </div>
+
+      <label for="p2" data-i="lPass2">Confirm password</label>
+      <div class="pwrap">
+        <input id="p2" type="password" data-i-ph="phPass" placeholder="6 characters minimum" autocomplete="new-password">
+        <button class="eye" id="eye2" type="button">👁</button>
+      </div>
+
+      <button id="submit" data-i="btnSave">Save new password</button>
+      <div class="msg" id="msg"></div>
+    </div>
+
+    <div class="box done" id="done-view">
+      <h1 style="color:var(--ok)" data-i="doneTitle">✓ Password changed</h1>
+      <p class="lead" data-i="doneLead">You can now sign in with your new password.</p>
+      <div class="sep">
+        <a href="../tape-espace/" data-i="linkSignIn">Sign in to your space</a>
+      </div>
+    </div>
+
+    <div class="box" id="error-view" style="display:none;">
+      <h1 style="color:var(--err)" data-i="errTitle">Link expired</h1>
+      <p class="lead" data-i="errLead">This reset link is invalid or has expired.</p>
+      <div class="sep">
+        <a href="recuperer-compte.html" data-i="linkRetry">Request a new link</a>
+      </div>
+    </div>
+
+    <div class="foot" data-i="foot">SanaaPro — powered by your workshop</div>
+  </div>
+
+<script type="module">
+  import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
+  import { getAuth, verifyPasswordResetCode, confirmPasswordReset }
+    from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
+
+  const firebaseConfig = {
+    apiKey: "AIzaSyCqfAGGU7yFs_QYg70u3e5cNYPXQjRHzsI",
+    authDomain: "sanaapro-app.firebaseapp.com",
+    projectId: "sanaapro-app",
+    storageBucket: "sanaapro-app.firebasestorage.app",
+    messagingSenderId: "451762519937",
+    appId: "1:451762519937:web:0507928bc9f6ef0c937280"
+  };
+
+  const T = {
+    en:{
+      tag:"your workshop, online", title:"Choose a new password",
+      lead:"Enter a new password for your account.",
+      leadFor:"Enter a new password for {e}.",
+      lPass:"New password", lPass2:"Confirm password", phPass:"6 characters minimum",
+      btnSave:"Save new password",
+      doneTitle:"✓ Password changed", doneLead:"You can now sign in with your new password.",
+      linkSignIn:"Sign in to your space",
+      errTitle:"Link expired", errLead:"This reset link is invalid or has expired.",
+      linkRetry:"Request a new link",
+      foot:"SanaaPro — powered by your workshop",
+      errShort:"Password too short (6 characters minimum).",
+      errMatch:"The two passwords don't match.",
+      errWeak:"Password too weak (6 characters minimum).",
+      errGeneric:"Something went wrong. Please request a new link.",
+      checking:"Saving…"
+    },
+    fr:{
+      tag:"votre atelier, en ligne", title:"Choisissez un nouveau mot de passe",
+      lead:"Entrez un nouveau mot de passe pour votre compte.",
+      leadFor:"Entrez un nouveau mot de passe pour {e}.",
+      lPass:"Nouveau mot de passe", lPass2:"Confirmez le mot de passe", phPass:"6 caractères minimum",
+      btnSave:"Enregistrer le mot de passe",
+      doneTitle:"✓ Mot de passe changé", doneLead:"Vous pouvez maintenant vous connecter avec votre nouveau mot de passe.",
+      linkSignIn:"Ouvrir votre espace",
+      errTitle:"Lien expiré", errLead:"Ce lien de réinitialisation est invalide ou a expiré.",
+      linkRetry:"Demander un nouveau lien",
+      foot:"SanaaPro — propulsé par votre atelier",
+      errShort:"Mot de passe trop court (6 caractères minimum).",
+      errMatch:"Les deux mots de passe ne correspondent pas.",
+      errWeak:"Mot de passe trop faible (6 caractères minimum).",
+      errGeneric:"Une erreur est survenue. Demandez un nouveau lien.",
+      checking:"Enregistrement…"
+    }
+  };
+
+  let L = "en";
+  try { L = localStorage.getItem("sanaapro_site_lang") || "en"; } catch(e){}
+  if(!T[L]) L = "en";
+  const t = k => (T[L] && T[L][k]) || T.en[k] || k;
+
+  const app = initializeApp(firebaseConfig);
+  const auth = getAuth(app);
+  const $ = id => document.getElementById(id);
+
+  function applyLang(){
+    document.documentElement.lang = L;
+    document.querySelectorAll("[data-i]").forEach(el=>{
+      const v = t(el.getAttribute("data-i"));
+      if(v) el.textContent = v;
+    });
+    document.querySelectorAll("[data-i-ph]").forEach(el=>{
+      const v = t(el.getAttribute("data-i-ph"));
+      if(v) el.placeholder = v;
+    });
+    document.querySelectorAll("#seg button").forEach(b=>{
+      b.classList.toggle("on", b.getAttribute("data-l") === L);
+    });
+  }
+  document.querySelectorAll("#seg button").forEach(b=>{
+    b.addEventListener("click", ()=>{
+      L = b.getAttribute("data-l");
+      try { localStorage.setItem("sanaapro_site_lang", L); } catch(e){}
+      applyLang();
+    });
+  });
+
+  function wireEye(inputId, btnId){
+    $(btnId).addEventListener("click", ()=>{
+      const p=$(inputId), b=$(btnId);
+      const show = p.type === "password";
+      p.type = show ? "text" : "password";
+      b.classList.toggle("on", show);
+      p.focus();
+    });
+  }
+  wireEye("p1","eye1");
+  wireEye("p2","eye2");
+
+  function show(kind, text){
+    const m=$("msg");
+    m.className = "msg show " + kind;
+    m.textContent = text;
+  }
+
+  const params = new URLSearchParams(window.location.search);
+  const oobCode = params.get("oobCode");
+  const mode = params.get("mode");
+
+  let email = "";
+
+  async function init(){
+    if(mode !== "resetPassword" || !oobCode){
+      $("form-view").style.display = "none";
+      $("error-view").style.display = "block";
+      applyLang();
+      return;
+    }
+    try{
+      email = await verifyPasswordResetCode(auth, oobCode);
+      $("lead-line").textContent = t("leadFor").replace("{e}", email);
+    }catch(e){
+      $("form-view").style.display = "none";
+      $("error-view").style.display = "block";
+    }
+    applyLang();
+  }
+
+  $("submit").addEventListener("click", async () => {
+    const p1 = $("p1").value;
+    const p2 = $("p2").value;
+
+    if(p1.length < 6){ show("err", t("errShort")); return; }
+    if(p1 !== p2){ show("err", t("errMatch")); return; }
+
+    $("submit").disabled = true;
+    show("ok", t("checking"));
+
+    try{
+      await confirmPasswordReset(auth, oobCode, p1);
+      $("form-view").style.display = "none";
+      $("done-view").classList.add("show");
+      applyLang();
+    }catch(e){
+      let m = t("errGeneric");
+      if(e.code === "auth/weak-password") m = t("errWeak");
+      show("err", m);
+      $("submit").disabled = false;
+    }
+  });
+
+  init();
+</script>
+</body>
+</html>
