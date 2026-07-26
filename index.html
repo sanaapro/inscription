@@ -110,6 +110,7 @@
       <div class="sep">
         <p data-i="haveAcc">Already have an account?</p>
         <a href="../tape-espace/" data-i="signIn">Sign in to your space</a>
+        <a href="recuperer-compte.html" data-i="forgot" style="margin-top:8px;">Forgot your email or password?</a>
       </div>
     </div>
 
@@ -157,6 +158,7 @@
       lWa:"WhatsApp (optional)",
       btnCreate:"Create my shop", priceNote:"Free for 14 days · then 500 D per month",
       haveAcc:"Already have an account?", signIn:"Sign in to your space",
+      forgot:"Forgot your email or password?",
       doneTitle:"✓ Shop created", doneLead:"Your space is ready. Keep these details:",
       btnOpen:"Open my shop", foot:"SanaaPro — powered by your workshop",
       identLabel:"Shop ID", checking:"Creating your shop…",
@@ -179,6 +181,7 @@
       lWa:"WhatsApp (optionnel)",
       btnCreate:"Créer ma boutique", priceNote:"Gratuit 14 jours · puis 500 D par mois",
       haveAcc:"Vous avez déjà un compte ?", signIn:"Ouvrir votre espace",
+      forgot:"Email ou mot de passe oublié ?",
       doneTitle:"✓ Boutique créée", doneLead:"Votre espace est prêt. Notez vos informations :",
       btnOpen:"Ouvrir ma boutique", foot:"SanaaPro — propulsé par votre atelier",
       identLabel:"Identifiant", checking:"Création en cours…",
@@ -238,6 +241,13 @@
   const makeSlug = s => s.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g,"")
     .replace(/[^a-z0-9]+/g,"-").replace(/^-+|-+$/g,"").slice(0,40);
 
+  function normPhone(s){
+    let d = (s||"").replace(/\D/g,"");
+    if(d.startsWith("00")) d = d.slice(2);
+    if(d.length>0 && d.length<=8) d = "220"+d;
+    return d;
+  }
+
   function refreshSlug(){
     const slug = makeSlug($("boutique").value);
     $("slug-preview").textContent = slug ? t("idPreview").replace("{s}", slug) : "";
@@ -283,6 +293,10 @@
         subscription: { plan:"trial", status:"active", tier:"standard", startAt: serverTimestamp(), expiresAt }
       });
       batch.set(doc(db,"users",uid), { boutiqueId: uid, slug, role:"owner", createdAt: serverTimestamp() });
+      const phone = normPhone(wa);
+      if(phone){
+        batch.set(doc(db,"phone_lookup",phone), { uid, email, createdAt: serverTimestamp() });
+      }
       await batch.commit();
 
       $("form-view").style.display = "none";
